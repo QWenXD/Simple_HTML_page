@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Retrieve API</title>
+    <style>
+        body {
+            background-color: lightgray;
+            color: black;
+            border: 1px dotted black;
+            padding: 10px;
+        }
+
+        body h1 {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .listContainer {
+            background-color: white;
+            border-radius: 10px;
+            line-height: 40px;
+
+        }
+
+        .listContainer p {
+            padding-left: 20px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <button id="fetchButton">Fetch</button>
+    <div id="loader" style="display: none">Loading...</div>
+    <div id="content"></div>
+
+</body>
+
+<script>
+    const fetchButton = document.querySelector('#fetchButton')
+    const loader = document.querySelector('#loader')
+    const content = document.querySelector('#content')
+
+    function fetchData(code) {
+        return fetch('https://api.universalcodes.msupply.org.nz/v1/items?code=' + code)
+    }
+
+    fetchButton.onclick = function () {
+        content.innerHTML = ''
+        const codes = ['369844bf', '64d064bf', '32d064bf', '372ce4bf', 'bbfcf518'];
+
+        loader.style.display = 'block'
+        let nextContent = "";
+        let result = "";
+        let count = 0
+        nextContent += `<h1>Status:</h1>`
+        codes.forEach(async code => {
+            nextContent += `<p id="${code}">${code} - Loading...</p>`
+            await fetchData(code)
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById(code).innerHTML = `${code} - Complete`
+                        return response.json();
+                    } else {
+                        document.getElementById(code).innerHTML = `${code} - Not Found`
+                        result += `<p>Code:${code} || Drug Not Found</p>`
+                        count += 1
+                        if (count === codes.length) {
+                            document.getElementById("result").innerHTML = result
+                        }
+                        throw new Error(`${code} code is not found`);
+                    }
+                })
+                .then(data => {
+                    result += `<p>Code:${data[0].code} || Name:${data[0].name}</p>`
+                    count += 1
+                    if (count === codes.length) {
+                        document.getElementById("result").innerHTML = result
+                    }
+                })
+        });
+
+        nextContent += `<h1>Results:</h1>`
+        nextContent += `<div id="result" class="listContainer"><p>Waiting for results...</p></div>`
+        loader.style.display = 'none'
+
+        content.innerHTML = nextContent
+    }
+
+
+</script>
+
+</html>
